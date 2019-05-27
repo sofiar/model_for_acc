@@ -1,0 +1,33 @@
+                    ############################
+                    ### Modelos autoregresivos #
+                    ############################
+# AR (1). phi=0.5
+ts=arima.sim(model = list(ar = c(0.8897, -0.4858)), n =100)
+ts=arima.sim(model = list(c(0.5,0.8)), n =100)
+plot(ts)
+
+?arima.sim
+#############################################
+#Estimation of the autocorrelation function #
+#############################################
+
+acf(ts)
+
+####################################
+# Persistence and anti persistence #
+####################################
+#Persistence is defined by a high correlation between an observation 
+#and its lag, while anti-persistence is defined by a large amount 
+#of variation between an observation and its lag.
+
+# The AR model exhibits higher persistence when its slope parameter is closer to 1
+
+###################
+# Estimation: MLE #
+###################
+
+estimation=arima(ts, order = c(1,0,0),method="ML")
+names(estimation)
+
+plot(estimation$residuals)
+

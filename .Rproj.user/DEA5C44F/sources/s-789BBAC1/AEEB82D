@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1558978354221.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "AEEB82D",
+    "lastKnownWriteTime" : 1558977834,
+    "last_content_update" : 1558977834,
+    "path" : "~/proyecto_doctoral/Datos_ACC/ACC_MODEL/fit_ArBayesian.R",
+    "project_path" : "fit_ArBayesian.R",
+    "properties" : {
+        "cursorPosition" : "105,0",
+        "scrollLine" : "92"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1558978526513.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "372300031",
+    "id" : "EA2DA191",
+    "lastKnownWriteTime" : 1558978661,
+    "last_content_update" : 1558978661735,
+    "path" : "~/proyecto_doctoral/Datos_ACC/ACC_MODEL/patterns.R",
+    "project_path" : "patterns.R",
+    "properties" : {
+        "cursorPosition" : "15,17",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

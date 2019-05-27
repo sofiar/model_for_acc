@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1558978482617.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "78CA030",
+    "lastKnownWriteTime" : 1558460318,
+    "last_content_update" : 1558460318,
+    "path" : "~/proyecto_doctoral/Datos_ACC/ACC_MODEL/group_ts.R",
+    "project_path" : "group_ts.R",
+    "properties" : {
+        "cursorPosition" : "6,0",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
