@@ -220,11 +220,73 @@ pacf(residuals[[j]],main=paste('Residuals AR(',as.character(j),')',sep=''))
 
 #ypreds: one for each sample of the posterior distribution 
 # Example: 
+
+
+
 plot(outs.k$ypred[7,],type='l')
 
 
-## 7. BIC(Prado) and WAIC
-# log_likelihood=extract_log_lik(fit.k[[1]],parameter_name = c('beta','alpha'),merge_chains = T)
-# dim(log_likelihood)
+## 7. WAIC 
 
+# 7.1 calculation of lpd (Estimated log pointwise predictive density)
+log_lik=list()
+lik=list()
+
+# calculation of the log likelihood
+rm(i,j,k,n,s,m)
+for (k in 1:length(K))
+{
+  log_lik[[k]]=matrix(NA,nrow=length(ts_data$y)-M*K[k],ncol=length(outs.k[[k]]$alpha))
+  lik[[k]]=matrix(NA,nrow=length(ts_data$y)-M*K[k],ncol=length(outs.k[[k]]$alpha))
+  
+  for (s in 1:length(outs.k[[k]]$alpha))
+  {
+  beta.s=outs.k[[k]]$beta[s,]
+  alpha.s=outs.k[[k]]$alpha[s]
+  sigma.s=outs.k[[k]]$sigma[s]
+    
+  ind=1
+  for (m in 1:M) # for each replicate
+  {
+      
+      for (i in K[k]:(ts.lengths[m]-1))
+      {
+        log_lik[[k]][ind,s]=dnorm(y[q1[m]+i],
+                              mean=(alpha.s+t(beta.s)%*%y[(q1[m]+i-K[k]):(q1[m]+i-1)]),
+                              sd=sigma.s,log=TRUE)
+        
+        
+      lik[[k]][ind,s]=dnorm(y[q1[m]+i],
+                                 mean=(alpha.s+t(beta.s)%*%y[(q1[m]+i-K[k]):(q1[m]+i-1)]),
+                                 sd=sigma.s,log=FALSE)
+      ind=ind+1  
+      }
+      
+      }
+  }
+}
+  
+  
+p.waic=rep(NA,length(K))
+lpd.waic=rep(NA,length(K))
+waic=rep(NA,length(K))
+for (k in 1:length(K))
+{
+lpd.waic[k]=sum(log(apply(lik[[k]],MARGIN=1,FUN=mean)))
+
+log.mean.s=apply(log_lik[[k]],MARGIN=1,FUN=mean)
+rm(i,s)
+su=rep(0,(length(ts_data$y)-M*K[k]))
+for (s in 1:length(outs.k[[k]]$alpha))
+{
+  for (i in 1:(length(ts_data$y)-M*K[k]))
+  {
+    su[i]=su[i]+log_lik[[k]][i,s]-log.mean.s[i]  
+  }
+}
+
+p.waic[k]=sum(su)/(length(outs.k[[k]]$alpha)-1)
+
+waic[k]=-2*(lpd.waic[k]-p.waic[k])
+}  
 
