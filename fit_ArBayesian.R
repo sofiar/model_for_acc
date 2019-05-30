@@ -186,18 +186,35 @@ for (j in 1:length(K))
 
 ## 5.2 check independency and normality
 
-nsim=4
-hist(residuals[,nsim])
-qqnorm(residuals[,nsim])
-qqline(residuals[,nsim])
-shapiro.test(residuals[,nsim]) # bajo, rechazamos H0
+par(mfrow=c(length(K),2))
+for (j in 1:length(K))
+{
+  hist(residuals[[j]],main=paste('Residuals AR(',as.character(j),')',sep=''),
+       xlab='residuals')
+  qqnorm(residuals[[j]])
+  qqline(residuals[[j]])
+}
 
 
-acf(residuals[,nsim])
-pacf(residuals[,nsim])
+# shapiro test for normality
+s.test=list()
+for (j in 1:length(K))
+{
+s.test[[j]]=shapiro.test(residuals[[j]]) 
+}
 
-ts.plot(as.ts(residuals))
+s.test
+# bajos, rechazamos H0
 
+
+# independency
+par(mfrow=c(length(K),3))
+for (j in 1:length(K))
+{
+  ts.plot(as.ts(residuals[[j]]),ylab=paste('Residuals AR(',as.character(j),')',sep=''))
+  acf(residuals[[j]],main=paste('Residuals AR(',as.character(j),')',sep=''))
+pacf(residuals[[j]],main=paste('Residuals AR(',as.character(j),')',sep=''))
+}
 
 ## 6. Posterior predictive checks: to see if the model fit well to the data and compare models
 
