@@ -42,55 +42,12 @@ for (j in 1:length(Eating))
 ###################### Inference with Stan  ######################
 ##################################################################
 
-#######################
-######## AR(1) ########
-#######################
-
-## Run stan model
-N=length(combined.Acx)
-M=length(n.s)-1
-resdims=cumsum(n.s-1)
-resdims[1]=0
-
-ts_dat <- list(N = N, y = combined.Acx,M=M, ydims=cumsum(n.s),rdims=resdims)
-stanc("model_ar1.stan")
-fit1 <- stan(file = 'model_ar1.stan', data = ts_dat,chain=2,cores=3)
-
-#######
-# Out #
-#######
-
-## Chains
-traceplot(fit1,pars=c("alpha", "beta", "sigma"))
-outs <- rstan::extract(fit1, permuted = TRUE) # return a list of arrays 
-
-## Parameter estimation
-print(fit1, pars=c("alpha", "beta", "sigma", "lp__"), probs=c(.1,.5,.9))
-plot(fit1,pars=c("alpha", "beta", "sigma"))
-
-## Posteriors
-hist(la$alpha)
-hist(la$beta) # esta dentro del (-1,1)? ---> estacionalidad
-hist(la$sigma)
-
-## Residuals
-residuals=as.vector(outs$rss)
-# cero mean?
-a.r=mean(residuals)
-a.sd=sd(residuals)
-val=a.r/(sqrt(a.sd/length(residuals)))
-pnorm(val)
-
-# Normality?
-hist(residuals)
-qqnorm(residuals)
-qqline(residuals)
 
 #######################
 ######## AR(k) ########
 #######################
 
-## 1.Run stan model
+## 1.Run stan models
 
 N=length(combined.Acx)
 K=seq(from=1,to=3,by=1)
@@ -111,35 +68,52 @@ stanc("model_ark.stan")
 fit.k[[j]] <- stan(file = 'model_ark.stan', data = ts_data,chain=3,cores=3)
 }
 
-#######
-# Out #
-#######
+
+
+##################################################################
+############################## OUTS  #############################
+##################################################################
+
 
 outs.k=list()
 
+###############
+## 2. Chains ##
+###############
 
-## 2. Chains
 for (p in 1:length(K))
 {
 traceplot(fit.k[[p]],pars=c("alpha", "beta", "sigma"))
 outs.k[[p]] <- rstan::extract(fit.k[[p]], permuted = TRUE) # return a list of arrays 
 }
 
-## 3. Parameter estimation
+##############################
+## 3. Parameter estimation ###
+##############################
+
 print(fit.k[[p]], pars=c("alpha", "beta", "sigma", "lp__"), probs=c(.1,.5,.9))
 plot(fit.k[[p]],pars=c("alpha", "beta", "sigma"))
 
+#####################
+## 3.1. Posteriors ##
+#####################
 
-## 3.1. Posteriors
 hist(outs.k[[p]]$alpha)
 hist(outs.k[[p]]$beta[,1])
 hist(outs.k[[p]]$beta[,2])
 hist(outs.k$beta[,3])
 hist(outs.k[[p]]$sigma)
 
-## 4. Seasonality? ---> mirar si los betas quedan dentro de la region Cp (si cumplen polinomio)
+#####################
+## 4. Seasonality? ##
+#####################
+#---> mirar si los betas quedan dentro de la region Cp (si cumplen polinomio)
 
-## 5. Residuals. 
+
+###################
+## 5. Residuals. ##
+###################
+
 ## 5.1 Calculation in R 
 
 residuals=list()
@@ -182,6 +156,20 @@ for (j in 1:length(K))
 #   }  
 # } 
 
+### Plot standarized residual
+stand.residuals=list()
+for (j in 1:length(K))
+{
+stand.residuals[[j]]=residuals[[j]]-mean (residuals[[j]])/(sd(residuals[[j]])) 
+
+}
+
+par(mfrow=c(length(K),1))
+for (k in 1:length(K))
+{
+  plot(stand.residuals[[k]],type='l', main= paste('Standardized Residuals AR(', as.character(k),')',sep=''))
+}
+
 
 
 ## 5.2 check independency and normality
@@ -207,7 +195,8 @@ s.test
 # bajos, rechazamos H0
 
 
-# independency
+## 5.3 independency
+
 par(mfrow=c(length(K),3))
 for (j in 1:length(K))
 {
@@ -216,17 +205,27 @@ for (j in 1:length(K))
 pacf(residuals[[j]],main=paste('Residuals AR(',as.character(j),')',sep=''))
 }
 
-## 6. Posterior predictive checks: to see if the model fit well to the data and compare models
+
+# residuals autocorrelation values of AR(1)
+signif(acf(residuals[[1]],plot=F)$acf[1:6],2)
+
+## El AR(1) parecería ser el que tiene los residuos menos autocorrelacionados
+
+####################################
+## 6. Posterior predictive checks ##
+####################################
 
 #ypreds: one for each sample of the posterior distribution 
 # Example: 
+par(mfrow=c(3,3))
 
 
 
-plot(outs.k$ypred[7,],type='l')
+plot(outs.k[[1]]$ypred[i,],type='l')
 
-
-## 7. WAIC 
+##############
+## 7. WAIC  ##
+##############
 
 # 7.1 calculation of lpd (Estimated log pointwise predictive density)
 log_lik=list()
@@ -290,3 +289,7 @@ p.waic[k]=sum(su)/(length(outs.k[[k]]$alpha)-1)
 waic[k]=-2*(lpd.waic[k]-p.waic[k])
 }  
 
+waic
+
+
+## waic nos da mas majo para AR(1). Nos quedariamos con ese
