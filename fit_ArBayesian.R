@@ -214,14 +214,158 @@ signif(acf(residuals[[1]],plot=F)$acf[1:6],2)
 ####################################
 ## 6. Posterior predictive checks ##
 ####################################
-
 #ypreds: one for each sample of the posterior distribution 
-# Example: 
-par(mfrow=c(3,3))
+
+
+## 6.1 First visual analysis 
+
+par(mfrow=c(2,1))
+for (i in 9:10)
+{
+plot(outs.k[[1]]$ypred[i,5:100],type='l')
+}
+
+# Real ts 
+par(mfrow=c(2,1))
+plot(ts(eating_tss[[5]] %>% select(Acx))[1:100],type='l')
+plot(ts(eating_tss[[3]] %>% select(Acx))[1:100],type='l')
+
+
+## 6.2 Compute summary statistics
+
+# WATCH OUT: some summary statistics could need that the simulated traj have the
+# same length of the raeal ts
+
+
+##### TEST1: frequency of “switches” (gelman p. 165)
+
+test1 <- function (y){
+  n <- length (y)
+  y.lag <- c (NA, y[1:(n-1)])
+  y.lag2 <- c (NA, NA, y[1:(n-2)])
+  sum (sign(y-y.lag) != sign(y.lag-y.lag2), na.rm=TRUE)
+}
+
+test.rep <- rep (NA, 3000)
+for (s in 1:3000){
+  test.rep[s] <- test1(outs.k[[1]]$ypred[s,5:100])
+}
+
+hist(test.rep)
+abline(v=test1(ts(eating_tss[[5]] %>% select(Acx))[1:95]),col='red')
+abline(v=test1(ts(eating_tss[[3]] %>% select(Acx))[1:95]),col='red')
+
+
+##### TEST2: Mean time between peaks
+
+pks=function (x, thresh ) 
+{
+  pks <- which(diff(sign(diff(x))) < 0) + 2
+  pks=pks[x[pks - 1] - x[pks] > thresh]
+  return(pks)
+}
+
+
+# mean time between pks (thresh)
+test2=function (p)
+{
+  np=length(p)
+  if(np>1)
+  {
+  tbp=numeric(np-1)
+  for (i in 2:np)
+  {
+    tbp[i-1]=p[i]-p[i-1]
+  }
+  exit=mean(tbp)
+  }
+else
+  {exit=NA}
+  return(exit)
+  }
+
+
+test2.rep <- rep (NA, 3000)
+for (s in 1:3000){
+  test2.rep[s] <- test2(pks(outs.k[[1]]$ypred[s,5:100],thresh = 0.1))
+}
+
+hist(test2.rep,main='Mean Time between peaks')
+abline(v=test2(pks(ts(eating_tss[[5]] %>% select(Acx))[1:95],thresh=0.1)),col='red')
+abline(v=test2(pks(ts(eating_tss[[3]] %>% select(Acx))[1:95],thresh=0.1)),col='red')
+
+##### TEST3: Number of peaks (thresh)
+
+test3.rep <- rep (NA, 3000)
+for (s in 1:3000){
+  test3.rep[s] <- length(pks(outs.k[[1]]$ypred[s,5:100],thresh = 0.1))
+}
+
+hist(test3.rep,main='Number of peaks')
+abline(v=length(pks(ts(eating_tss[[5]] %>% select(Acx))[1:95],thresh = 0.1)),col='red')
+abline(v=length(pks(ts(eating_tss[[3]] %>% select(Acx))[1:95],thresh = 0.1)),col='red')
+         
+##### TEST4: Max and Range Max-Min
+
+test4.rep <- rep (NA, 3000)
+for (s in 1:3000){
+  test4.rep[s] <- max(outs.k[[1]]$ypred[s,5:100])-min(outs.k[[1]]$ypred[s,5:100])
+}
+
+hist(test4.rep,main='Maximum value')
+abline(v=max(ts(eating_tss[[5]] %>% select(Acx))[1:95])-
+         min(ts(eating_tss[[5]] %>% select(Acx))[1:95]),col='red')
+abline(v=max(ts(eating_tss[[3]] %>% select(Acx))[1:95])-
+         min(ts(eating_tss[[5]] %>% select(Acx))[1:95]),col='red')
+
+test4b.rep <- rep (NA, 3000)
+for (s in 1:3000){
+  test4b.rep[s] <- max(outs.k[[1]]$ypred[s,5:100])
+}
+
+hist(test4b.rep,main='Maximum value')
+abline(v=max(ts(eating_tss[[5]] %>% select(Acx))[1:95]),col='red')
+abline(v=max(ts(eating_tss[[3]] %>% select(Acx))[1:95]),col='red')
+
+##### TEST5: Mean difference between consecutive values
+
+
+test5.rep <- rep (NA, 3000)
+for (s in 1:3000){
+  test5.rep[s] <- mean(diff(outs.k[[1]]$ypred[s,5:100]))
+}
+
+hist(test5.rep,main='Maximum value')
+abline(v=mean(diff(ts(eating_tss[[5]] %>% select(Acx))[1:95])),col='red')
+abline(v=mean(diff(ts(eating_tss[[3]] %>% select(Acx))[1:95])),col='red')
+
+##### TEST6: Mean standard deviation over a window 
+
+
+test6=function(x,w)
+{
+  nn=floor(length(x)/w)
+  ssd=numeric(nn)
+  for (i in 1:nn)
+  {
+    ssd[i]=sd(x[(w*(i-1)+1):(w*(i-1)+w)])
+  }
+return(mean(ssd))
+}
+
+w=5
+test6.rep <- rep (NA, 3000)
+for (s in 1:3000){
+  test6.rep[s] <- test6(outs.k[[1]]$ypred[s,5:100],w)
+}
+
+hist(test6.rep,main=paste('Mean sd over a window(',as.character(w),')',sep=''))
+abline(v=test6(ts(eating_tss[[5]] %>% select(Acx))[1:95],w),col='red')
+abline(v=test6(ts(eating_tss[[3]] %>% select(Acx))[1:95],w),col='red')
 
 
 
-plot(outs.k[[1]]$ypred[i,],type='l')
+
 
 ##############
 ## 7. WAIC  ##
