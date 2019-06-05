@@ -1,10 +1,10 @@
-## AR(1) with STAN
 library(tidyverse)
 library(rstan)
 library(shinystan)
-source('group_ts.R')
 
 # Behaviour: Eating 
+beha='eating'
+source('group_ts.R')
 ################################################################
 ###################### Unify Time Series #######################
 ################################################################
