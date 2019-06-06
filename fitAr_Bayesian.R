@@ -5,14 +5,26 @@ library(shinystan)
 # Behaviour: Eating 
 beha='eating'
 source('group_ts.R')
+
+
+if (beha='vigilance')
+{
+  tss=vigilance_tss
+}
+
+if (beha='eating')
+{
+  tss=eating_tss
+}
+
 ################################################################
 ###################### Unify Time Series #######################
 ################################################################
 
 n.s=c()
-for (i in 1:length(eating_tss))
+for (i in 1:length(tss))
 {
-  ts.s=eating_tss[[i]]
+  ts.s=tss[[i]]
   n.s[i]=length(ts.s$Acx)
 }
 ts.lengths=n.s
@@ -21,11 +33,11 @@ n.s=c(1,n.s)
 combined.Acx=c()
 combined.Acy=c()
 combined.Acz=c()
-for (i in 1: length(Eating))
+for (i in 1: length(tss))
 {
-  combined.Acx=c(combined.Acx,c(eating_tss[[i]] %>% select(Acx))[[1]])
-  combined.Acy=c(combined.Acy,c(eating_tss[[i]] %>% select(Acy))[[1]])
-  combined.Acz=c(combined.Acz,c(eating_tss[[i]] %>% select(Acz))[[1]])
+  combined.Acx=c(combined.Acx,c(tss[[i]] %>% select(Acx))[[1]])
+  combined.Acy=c(combined.Acy,c(tss[[i]] %>% select(Acy))[[1]])
+  combined.Acz=c(combined.Acz,c(tss[[i]] %>% select(Acz))[[1]])
 }
 
 plot(combined.Acx,type='l')
