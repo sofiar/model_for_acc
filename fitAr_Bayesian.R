@@ -2,8 +2,8 @@ library(tidyverse)
 library(rstan)
 library(shinystan)
 
-# Behaviour: Eating 
-beha='eating'
+
+beha='vigilance'
 source('group_ts.R')
 
 
@@ -79,7 +79,6 @@ yz = combined.Acz
 fitx.k=list()
 fity.k=list()
 fitz.k=list()
-
 
 
 # fit AR(k) for Acx
@@ -160,7 +159,7 @@ plot(fitz.k[[p]],pars=c("alpha", "beta", "sigma"))
 hist(outsx.k[[p]]$alpha)
 hist(outsx.k[[p]]$beta[,1])
 hist(outsx.k[[p]]$beta[,2])
-hist(outsx.k$beta[,3])
+hist(outsx.k[[p]]$beta[,3])
 hist(outsx.k[[p]]$sigma)
 
 hist(outsy.k[[p]]$alpha)
@@ -281,7 +280,7 @@ stand.residualsZ[[j]]=residuals.z[[j]]-mean (residuals.z[[j]])/(sd(residuals.z[[
 par(mfrow=c(length(K),1))
 for (k in 1:length(K))
 {
-  plot(stand.residualsZ[[k]],type='l', main= paste('Standardized Residuals AR(', as.character(k),')',sep=''))
+  plot(stand.residualsY[[k]],type='l', main= paste('Standardized Residuals AR(', as.character(k),')',sep=''))
 }
 
 
@@ -379,30 +378,56 @@ signif(acf(residuals[[1]],plot=F)$acf[1:6],2)
 
 ## 6.1 First visual analysis 
 
-par(mfrow=c(2,1))
-for (i in 1:2)
+# Simulted acx
+png(filename='simulated.x.png',width = 850,height=500)
+par(mfrow=c(3,1))
+for (i in 1:3)
 {
-plot(outsz.k[[p]]$ypred[i,5:100],type='l')
+plot(outsx.k[[p]]$ypred[i,5:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
 }
-
+dev.off()
 # Real ts: Acx 
-par(mfrow=c(2,1))
-plot(ts(eating_tss[[5]] %>% select(Acx))[1:100],type='l')
-plot(ts(eating_tss[[3]] %>% select(Acx))[1:100],type='l')
-plot(ts(eating_tss[[4]] %>% select(Acx)),type='l',xlim=c(0,100))
+png(filename='real.x.png',width = 850,height=500)
+par(mfrow=c(3,1))
+plot(ts(tss[[4]] %>% select(Acx))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
+plot(ts(tss[[5]] %>% select(Acx))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
+plot(ts(tss[[3]] %>% select(Acx))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
+
+dev.off()
+
+# Simulted acy
+png(filename='simulated.y.png',width = 850,height=500)
+par(mfrow=c(3,1))
+for (i in 1:3)
+{
+  plot(outsy.k[[p]]$ypred[i,5:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
+}
+dev.off()
 
 # Real ts: Acy
-par(mfrow=c(2,1))
-plot(ts(eating_tss[[5]] %>% select(Acy))[1:100],type='l')
-plot(ts(eating_tss[[3]] %>% select(Acy))[1:100],type='l')
-plot(ts(eating_tss[[4]] %>% select(Acy)),type='l',xlim=c(0,100))
+png(filename='real.y.png',width = 850,height=500)
+par(mfrow=c(3,1))
+plot(ts(tss[[5]] %>% select(Acy))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
+plot(ts(tss[[3]] %>% select(Acy))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
+plot(ts(tss[[4]] %>% select(Acy))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
+dev.off()
 
+
+# Simulted acy
+png(filename='simulated.z.png',width = 850,height=500)
+par(mfrow=c(3,1))
+for (i in 1:3)
+{
+  plot(outsz.k[[p]]$ypred[i,5:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
+}
+dev.off()
 # Real ts: Real Acz 
-par(mfrow=c(2,1))
-plot(ts(eating_tss[[5]] %>% select(Acz))[1:100],type='l')
-plot(ts(eating_tss[[3]] %>% select(Acz))[1:100],type='l')
-plot(ts(eating_tss[[4]] %>% select(Acz)),type='l',xlim=c(0,100))
-
+png(filename='real.z.png',width = 850,height=500)
+par(mfrow=c(3,1))
+plot(ts(tss[[5]] %>% select(Acz))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
+plot(ts(tss[[3]] %>% select(Acz))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
+plot(ts(tss[[4]] %>% select(Acz))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
+dev.off()
 
 ## 6.2 Compute summary statistics
 
@@ -424,10 +449,12 @@ test.repX <- rep (NA, 3000)
 for (s in 1:3000){
   test.repX[s] <- test1(outsx.k[[p]]$ypred[s,5:100])
 }
-
+#plot
 hist(test.repX)
-abline(v=test1(ts(eating_tss[[5]] %>% select(Acx))[1:95]),col='red')
-abline(v=test1(ts(eating_tss[[3]] %>% select(Acx))[1:95]),col='red')
+for(i in 1:M)
+{
+  abline(v=test1(ts(tss[[i]] %>% select(Acx))[1:95]),col='red')  
+}
 
 # AcY
 test.repY <- rep (NA, 3000)
@@ -436,8 +463,11 @@ for (s in 1:3000){
 }
 
 hist(test.repY)
-abline(v=test1(ts(eating_tss[[5]] %>% select(Acy))[1:95]),col='red')
-abline(v=test1(ts(eating_tss[[3]] %>% select(Acy))[1:95]),col='red')
+
+for(i in 1:M)
+{
+ abline(v=test1(ts(tss[[i]] %>% select(Acy))[1:95]),col='red')
+}
 
 # AcZ
 test.repZ <- rep (NA, 3000)
@@ -446,9 +476,10 @@ for (s in 1:3000){
 }
 
 hist(test.repZ)
-abline(v=test1(ts(eating_tss[[5]] %>% select(Acz))[1:95]),col='red')
-abline(v=test1(ts(eating_tss[[3]] %>% select(Acz))[1:95]),col='red')
-
+for(i in 1:M)
+{
+abline(v=test1(ts(tss[[i]] %>% select(Acz))[1:95]),col='red')
+}
 ##### TEST2: Mean time between peaks
 
 pks=function (x, thresh ) 
@@ -483,21 +514,25 @@ for (s in 1:3000){
   test2X.rep[s] <- test2(pks(outsx.k[[p]]$ypred[s,5:100],thresh = 0.1))
 }
 
+#Plot
 hist(test2X.rep,main='Mean Time between peaks')
-abline(v=test2X(pks(ts(eating_tss[[5]] %>% select(Acx))[1:95],thresh=0.1)),col='red')
-abline(v=test2X(pks(ts(eating_tss[[3]] %>% select(Acx))[1:95],thresh=0.1)),col='red')
-
+for (i in 1:M)
+{
+  abline(v=test2(pks(ts(tss[[i]] %>% select(Acx))[1:95],thresh=0.1)),col='red')
+}
 
 #Acy
 test2Y.rep <- rep (NA, 3000)
 for (s in 1:3000){
   test2Y.rep[s] <- test2(pks(outsy.k[[p]]$ypred[s,5:100],thresh = 0.1))
 }
+#plot
 
 hist(test2Y.rep,main='Mean Time between peaks')
-abline(v=test2(pks(ts(eating_tss[[5]] %>% select(Acy))[1:95],thresh=0.1)),col='red')
-abline(v=test2(pks(ts(eating_tss[[3]] %>% select(Acy))[1:95],thresh=0.1)),col='red')
-
+for (i in 1:M)
+{
+  abline(v=test2(pks(ts(tss[[i]] %>% select(Acy))[1:95],thresh=0.1)),col='red')
+}
 
 #Acz
 test2Z.rep <- rep (NA, 3000)
@@ -505,9 +540,12 @@ for (s in 1:3000){
   test2Z.rep[s] <- test2(pks(outsz.k[[p]]$ypred[s,5:100],thresh = 0.1))
 }
 
+#Plot
 hist(test2Z.rep,main='Mean Time between peaks')
-abline(v=test2(pks(ts(eating_tss[[5]] %>% select(Acz))[1:95],thresh=0.1)),col='red')
-abline(v=test2(pks(ts(eating_tss[[3]] %>% select(Acz))[1:95],thresh=0.1)),col='red')
+for (i in 1:M)
+{
+  abline(v=test2(pks(ts(tss[[i]] %>% select(Acz))[1:95],thresh=0.1)),col='red')  
+}
 
 
 ##### TEST3: Number of peaks (thresh)
@@ -518,30 +556,39 @@ test3X.rep <- rep (NA, 3000)
 for (s in 1:3000){
   test3X.rep[s] <- length(pks(outsx.k[[p]]$ypred[s,5:100],thresh = 0.1))
 }
-
+#Plot
 hist(test3X.rep,main='Number of peaks')
-abline(v=length(pks(ts(eating_tss[[5]] %>% select(Acx))[1:95],thresh = 0.1)),col='red')
-abline(v=length(pks(ts(eating_tss[[3]] %>% select(Acx))[1:95],thresh = 0.1)),col='red')
-         
+for (i in 1:M)
+{
+  abline(v=length(pks(ts(tss[[i]] %>% select(Acx))[1:95],thresh = 0.1)),col='red')
+}
+
+
 #Acy
 test3Y.rep <- rep (NA, 3000)
 for (s in 1:3000){
   test3Y.rep[s] <- length(pks(outsy.k[[p]]$ypred[s,5:100],thresh = 0.1))
 }
-
+#Plot
 hist(test3Y.rep,main='Number of peaks')
-abline(v=length(pks(ts(eating_tss[[5]] %>% select(Acy))[1:95],thresh = 0.1)),col='red')
-abline(v=length(pks(ts(eating_tss[[3]] %>% select(Acy))[1:95],thresh = 0.1)),col='red')
+for (i in 1:M)
+{
+  abline(v=length(pks(ts(tss[[i]] %>% select(Acy))[1:95],thresh = 0.1)),col='red')  
+}
+
 
 #Acz
 test3Z.rep <- rep (NA, 3000)
 for (s in 1:3000){
   test3Z.rep[s] <- length(pks(outsz.k[[p]]$ypred[s,5:100],thresh = 0.1))
 }
-
+#plot
 hist(test3Z.rep,main='Number of peaks')
-abline(v=length(pks(ts(eating_tss[[5]] %>% select(Acz))[1:95],thresh = 0.1)),col='red')
-abline(v=length(pks(ts(eating_tss[[3]] %>% select(Acz))[1:95],thresh = 0.1)),col='red')
+for (i in 1:M)
+{
+  abline(v=length(pks(ts(tss[[i]] %>% select(Acz))[1:95],thresh = 0.1)),col='red')
+}
+
 
 ##### TEST4: Max (and Range Max-Min)
 
@@ -550,30 +597,38 @@ test4x.rep <- rep (NA, 3000)
 for (s in 1:3000){
   test4x.rep[s] <- max(outsx.k[[p]]$ypred[s,5:100])#-min(outs.k[[1]]$ypred[s,5:100])
 }
-
+#Plot
 hist(test4x.rep,main='Maximum value')
-abline(v=max(ts(eating_tss[[5]] %>% select(Acx))[1:95]),col='red')
-abline(v=max(ts(eating_tss[[3]] %>% select(Acx))[1:95]),col='red')
+for (i in 1:M)
+{
+  abline(v=max(ts(tss[[i]] %>% select(Acx))[1:95]),col='red')  
+}
+
 
 #Acy
 test4y.rep <- rep (NA, 3000)
 for (s in 1:3000){
   test4y.rep[s] <- max(outsy.k[[p]]$ypred[s,5:100])#-min(outs.k[[1]]$ypred[s,5:100])
 }
-
+#Plot
 hist(test4y.rep,main='Maximum value')
-abline(v=max(ts(eating_tss[[5]] %>% select(Acy))[1:95]),col='red')
-abline(v=max(ts(eating_tss[[3]] %>% select(Acy))[1:95]),col='red')
+for (i in 1:M)
+{
+  abline(v=max(ts(tss[[i]] %>% select(Acy))[1:95]),col='red')  
+}
+
 
 #Acz
 test4z.rep <- rep (NA, 3000)
 for (s in 1:3000){
   test4z.rep[s] <- max(outsz.k[[p]]$ypred[s,5:100])#-min(outs.k[[1]]$ypred[s,5:100])
 }
-
+#Plot
 hist(test4z.rep,main='Maximum value')
-abline(v=max(ts(eating_tss[[5]] %>% select(Acz))[1:95]),col='red')
-abline(v=max(ts(eating_tss[[3]] %>% select(Acz))[1:95]),col='red')
+for(i in 1:M)
+{
+  abline(v=max(ts(tss[[i]] %>% select(Acz))[1:95]),col='red')  
+}
 
 ##### TEST5: Mean difference between consecutive values
 
@@ -583,31 +638,38 @@ for (s in 1:3000){
   test5x.rep[s] <- mean(diff(outsx.k[[p]]$ypred[s,5:100]))
 }
 
+#plot
 hist(test5x.rep,main='Mean difference between consecutive values')
-abline(v=mean(diff(ts(eating_tss[[5]] %>% select(Acx))[1:95])),col='red')
-abline(v=mean(diff(ts(eating_tss[[3]] %>% select(Acx))[1:95])),col='red')
+for (i in 1:M)
+{
+  abline(v=mean(diff(ts(tss[[i]] %>% select(Acx))[1:95])),col='red')  
+}
+
+
 
 #Acy
 test5y.rep <- rep (NA, 3000)
 for (s in 1:3000){
   test5y.rep[s] <- mean(diff(outsy.k[[p]]$ypred[s,5:100]))
 }
-
+#Plot
 hist(test5y.rep,main='Mean difference between consecutive values')
-abline(v=mean(diff(ts(eating_tss[[5]] %>% select(Acy))[1:95])),col='red')
-abline(v=mean(diff(ts(eating_tss[[3]] %>% select(Acy))[1:95])),col='red')
+for (i in 1:M)
+{
+  abline(v=mean(diff(ts(tss[[i]] %>% select(Acy))[1:95])),col='red')  
+}
 
-
-#Acy
+#Acz
 test5z.rep <- rep (NA, 3000)
 for (s in 1:3000){
   test5z.rep[s] <- mean(diff(outsz.k[[p]]$ypred[s,5:100]))
 }
-
+#Plot
 hist(test5z.rep,main='Mean difference between consecutive values')
-abline(v=mean(diff(ts(eating_tss[[5]] %>% select(Acz))[1:95])),col='red')
-abline(v=mean(diff(ts(eating_tss[[3]] %>% select(Acz))[1:95])),col='red')
-
+for (i in 1:M)
+{
+  abline(v=mean(diff(ts(tss[[i]] %>% select(Acz))[1:95])),col='red')
+}
 
 ##### TEST6: Mean standard deviation over a window 
 
@@ -630,32 +692,39 @@ test6x.rep <- rep (NA, 3000)
 for (s in 1:3000){
   test6x.rep[s] <- test6(outsx.k[[p]]$ypred[s,5:100],w)
 }
-
+#Plot
 hist(test6x.rep,main=paste('Mean sd over a window(',as.character(w),')',sep=''))
-abline(v=test6(ts(eating_tss[[5]] %>% select(Acx))[1:95],w),col='red')
-abline(v=test6(ts(eating_tss[[3]] %>% select(Acx))[1:95],w),col='red')
+for (i in 1:M)
+{
+  abline(v=test6(ts(tss[[i]] %>% select(Acx))[1:95],w),col='red')  
+}
+
+
 
 #Acy
 test6y.rep <- rep (NA, 3000)
 for (s in 1:3000){
   test6y.rep[s] <- test6(outsy.k[[p]]$ypred[s,5:100],w)
 }
-
+#Plot
 hist(test6y.rep,main=paste('Mean sd over a window(',as.character(w),')',sep=''))
-abline(v=test6(ts(eating_tss[[5]] %>% select(Acy))[1:95],w),col='red')
-abline(v=test6(ts(eating_tss[[3]] %>% select(Acy))[1:95],w),col='red')
+for (i in 1:M)
+{
+  abline(v=test6(ts(tss[[i]] %>% select(Acy))[1:95],w),col='red')
+}
+
 
 #Acz
 test6z.rep <- rep (NA, 3000)
 for (s in 1:3000){
   test6z.rep[s] <- test6(outsz.k[[p]]$ypred[s,5:100],w)
 }
-
+#Plot
 hist(test6z.rep,main=paste('Mean sd over a window(',as.character(w),')',sep=''))
-abline(v=test6(ts(eating_tss[[5]] %>% select(Acz))[1:95],w),col='red')
-abline(v=test6(ts(eating_tss[[3]] %>% select(Acz))[1:95],w),col='red')
-
-
+for (i in 1:M)
+{
+  abline(v=test6(ts(tss[[i]] %>% select(Acz))[1:95],w),col='red')  
+}
 
 ##############
 ## 7. WAIC  ##
