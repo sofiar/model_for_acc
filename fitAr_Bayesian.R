@@ -3,18 +3,23 @@ library(rstan)
 library(shinystan)
 
 
-beha='vigilance'
+beha='searching'
 source('group_ts.R')
 
 
-if (beha='vigilance')
+if (beha=='vigilance')
 {
   tss=vigilance_tss
 }
 
-if (beha='eating')
+if (beha=='eating')
 {
   tss=eating_tss
+}
+
+if (beha=='searching')
+{
+  tss=searching_tss
 }
 
 ################################################################
@@ -142,6 +147,7 @@ for (p in 1:length(K))
 ##############################
 ## 3. Parameter estimation ###
 ##############################
+
 
 print(fitx.k[[p]], pars=c("alpha", "beta", "sigma", "lp__"), probs=c(.1,.5,.9))
 plot(fitx.k[[p]],pars=c("alpha", "beta", "sigma"))
@@ -389,8 +395,8 @@ dev.off()
 # Real ts: Acx 
 png(filename='real.x.png',width = 850,height=500)
 par(mfrow=c(3,1))
-plot(ts(tss[[4]] %>% select(Acx))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
-plot(ts(tss[[5]] %>% select(Acx))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
+plot(ts(tss[[1]] %>% select(Acx))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
+plot(ts(tss[[2]] %>% select(Acx))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
 plot(ts(tss[[3]] %>% select(Acx))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
 
 dev.off()
@@ -407,13 +413,13 @@ dev.off()
 # Real ts: Acy
 png(filename='real.y.png',width = 850,height=500)
 par(mfrow=c(3,1))
-plot(ts(tss[[5]] %>% select(Acy))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
+plot(ts(tss[[1]] %>% select(Acy))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
 plot(ts(tss[[3]] %>% select(Acy))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
-plot(ts(tss[[4]] %>% select(Acy))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
+plot(ts(tss[[2]] %>% select(Acy))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
 dev.off()
 
 
-# Simulted acy
+# Simulted acz
 png(filename='simulated.z.png',width = 850,height=500)
 par(mfrow=c(3,1))
 for (i in 1:3)
@@ -424,9 +430,9 @@ dev.off()
 # Real ts: Real Acz 
 png(filename='real.z.png',width = 850,height=500)
 par(mfrow=c(3,1))
-plot(ts(tss[[5]] %>% select(Acz))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
+plot(ts(tss[[1]] %>% select(Acz))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
 plot(ts(tss[[3]] %>% select(Acz))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
-plot(ts(tss[[4]] %>% select(Acz))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
+plot(ts(tss[[2]] %>% select(Acz))[1:100],type='l',cex.axis=2.5,cex.lab=2.5,ylab='',xlab='')
 dev.off()
 
 ## 6.2 Compute summary statistics
@@ -531,7 +537,8 @@ for (s in 1:3000){
 hist(test2Y.rep,main='Mean Time between peaks')
 for (i in 1:M)
 {
-  abline(v=test2(pks(ts(tss[[i]] %>% select(Acy))[1:95],thresh=0.1)),col='red')
+  ll=min(dim(ts(tss[[i]] %>% select(Acy)))[1])
+  abline(v=test2(pks(ts(tss[[i]] %>% select(Acy))[1:ll],thresh=0.1)),col='red')
 }
 
 #Acz
@@ -696,7 +703,9 @@ for (s in 1:3000){
 hist(test6x.rep,main=paste('Mean sd over a window(',as.character(w),')',sep=''))
 for (i in 1:M)
 {
-  abline(v=test6(ts(tss[[i]] %>% select(Acx))[1:95],w),col='red')  
+  ps=dim(tss[[i]] %>% select(Acx))[1]
+  dl=min(ps,95)
+  abline(v=test6(ts(tss[[i]] %>% select(Acx))[1:dl],w),col='red')  
 }
 
 
@@ -708,9 +717,14 @@ for (s in 1:3000){
 }
 #Plot
 hist(test6y.rep,main=paste('Mean sd over a window(',as.character(w),')',sep=''))
+
+
+
 for (i in 1:M)
 {
-  abline(v=test6(ts(tss[[i]] %>% select(Acy))[1:95],w),col='red')
+  ps=dim(tss[[i]] %>% select(Acy))[1]
+  dl=min(ps,95)
+  abline(v=test6(ts(tss[[i]] %>% select(Acy))[1:dl],w),col='red')
 }
 
 
@@ -723,7 +737,9 @@ for (s in 1:3000){
 hist(test6z.rep,main=paste('Mean sd over a window(',as.character(w),')',sep=''))
 for (i in 1:M)
 {
-  abline(v=test6(ts(tss[[i]] %>% select(Acz))[1:95],w),col='red')  
+  ps=dim(tss[[i]] %>% select(Acz))[1]
+  dl=min(ps,95)
+  abline(v=test6(ts(tss[[i]] %>% select(Acz))[1:dl],w),col='red')  
 }
 
 ##############
