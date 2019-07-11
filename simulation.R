@@ -39,7 +39,7 @@ betas3[[3]]=c(NA,NA,NA) # beta3 for state 3 for the three acc axis
 betas3[[4]]=c(NA,0.01,NA) # beta3 for state 4 for the three acc axis
 betas3[[5]]=c(NA,NA,NA) # beta3 for state 5 for the three acc axis
 
-k=list(c(1,2,1),c(1,2,3),c(1,1,1),c(2,3,1),c(2,1,1)) # order of each model
+k=cbind(c(1,2,1),c(1,2,3),c(1,1,1),c(2,3,1),c(2,1,1)) # order of each model
 
 # Initial distributions
 delta=rep(1,M)/M
