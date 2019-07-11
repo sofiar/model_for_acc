@@ -44,12 +44,13 @@ k=list(c(1,2,1),c(1,2,3),c(1,1,1),c(2,3,1),c(2,1,1)) # order of each model
 # Initial distributions
 delta=rep(1,M)/M
 
-# Trasition probability matrix 
-tpm <- matrix(c(0.75, 0.14, 0.005, 0.005, 0.1,
-                 0.1, 0.7, 0.05, 0.05, 0.1,
-                 0.01, 0.15,0.6, 0.09,0.15,
-                 0.02, 0.01, 0.01, 0.66,0.3,
-                 0.25,0.05,0.20,0.4,0.1), byrow = T, nrow = 5)
+# Trasition probability matrix:
+# tmp_ii=0
+tpm <- matrix(c(0, 0.34, 0.255, 0.105, 0.3,
+                 0.2, 0, 0.35, 0.25, 0.2,
+                 0.11, 0.25,0, 0.29,0.35,
+                 0.1, 0.2, 0.3, 0,0.4,
+                 0.25,0.15,0.20,0.4,0), byrow = T, nrow = 5)
 
 # Number of total NAS sequence (i.e, number of changes)
 Tc=30
