@@ -50,7 +50,7 @@ NAS=which(c(1,diff(S))!=0)
 
 
 # Fit and outs 
-data.simu<- list(K = 5, y = t(Obs)[,1],k=c(1,1,1,2,2),T=dim(Obs)[2],z=S,NAS=NAS,u=Stimes,N=Tc)
+data.simu<- list(K = 5, y =Obs,k=k,T=dim(Obs)[2],z=S,NAS=NAS,u=Stimes,N=Tc)
 stanc("model_SHMM.stan")
 options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
