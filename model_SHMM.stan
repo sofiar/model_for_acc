@@ -14,6 +14,7 @@ parameters {
   //autorregresive models. Assume AR(1) for now
   real betas1[K];
   real betas2[K];// automatic (?)
+  real betas3[K];// automatic (?)
   real alphas[K];
   real<lower=0> sigmas[K];
   simplex[K] theta[K]; // K x K tpm
@@ -27,7 +28,7 @@ model {
   int k1=1;
   int k2=2;
   
-  // prior for alphas and betas 
+  // prior for alphas and betas ??
   betas1 ~ student_t(3, 0, 1);
   betas2 ~ student_t(3, 0, 1);
   alphas ~ student_t(3, 0, 1);
@@ -43,15 +44,16 @@ for (n_from in 1:K)
 //First obs
 lp = log(0.5) + poisson_lpmf(u[1]|lambda[z[1]])+normal_lpdf(y[1] | 0, sigmas[z[1]]);
 
-
-// ACA HAY QUER AGREGAR UN IF QUE TENGA QUE VER CON SI ES LA PRIMERA OBS DEL ESTADO
 for (t in 3:T) { // looping over all observations pdfs
-if (k[z[t]]==1)//AR(1)
-{lp_p1 =lp + normal_lpdf(y[t] |(alphas[z[t]]+betas1[z[t]]*y[t-1]), sigmas[z[t]]);}
+if (k[z[t]]==1 && k[z[t]]==k[z[t-1]])//AR(1)
+  {lp_p1 =lp + normal_lpdf(y[t] |(alphas[z[t]]+betas1[z[t]]*y[t-1]), sigmas[z[t]]);
+  }
   
-else if (k[z[t]]==2)//AR(2)
+else if (k[z[t]]==2 && k[z[t]]==k[z[t-1]]&& k[z[t]]==k[z[t-2]])//AR(2)
 {lp_p1 =lp + normal_lpdf(y[t] |(alphas[z[t]]+betas1[z[t]]*y[t-1]+betas2[z[t]]*y[t-2]), sigmas[z[t]]);}
 
+else if (k[z[t]]==3 && k[z[t]]==k[z[t-1]]&& k[z[t]]==k[z[t-2]]&& k[z[t]]==k[z[t-3]])//AR(3)
+{lp_p1 =lp + normal_lpdf(y[t] |(alphas[z[t]]+betas1[z[t]]*y[t-1]+betas2[z[t]]*y[t-2]+betas3[z[t]]*y[t-3]), sigmas[z[t]]);}
 lp = lp_p1;
 }
 
