@@ -42,21 +42,19 @@ traceplot(fit,pars=c("alphas", "betas", "sigmas",'theta'))
 outs <- rstan::extract(fit, permuted = TRUE) # return a list of arrays 
 
 #############################
-##    From SHMM. AR(1)     ##
+##    From SHMM.           ##
 #############################
 source('simulation.R')
-S=rep(states,times=Stimes)
-NAS=which(c(1,diff(S))!=0)
 
 
 # Fit and outs 
-data.simu<- list(K = 5, y =Obs,k=k,T=dim(Obs)[2],z=S,NAS=NAS,u=Stimes,N=Tc)
+data.simu<- list(K = 5, nsims=nsims,T=totL,k=k,z=statess,NAS=w.NAS,u=stimes,N=Tc,y=Data)
 stanc("model_SHMM.stan")
 options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
-fit <- stan(file = 'model_SHMM.stan', data = data.simu,chain=3,cores=3)
+ fit <- stan(file = 'model_SHMM.stan', data = data.simu,chain=1,cores=3,control = list(adapt_delta = 0.99))
 
-traceplot(fit,pars=c("alphas", "betas1",'betas2'))
+traceplot(fit,pars=c("alphas", "betas1",'betas2','betas3'))
 outs <- rstan::extract(fit, permuted = TRUE) # return a list of arrays 
 
 # Sojourn times 
@@ -77,5 +75,33 @@ for (i in 1:5)
   for (j in 1:5)
   {hist(outs$theta[,i,j],main=paste('p',as.character(i),as.character(j),sep=''))
   abline(v=tpm[i,j],col='red')
+  }
+}
+
+# Ar parameters 
+
+#betas1
+par(mfrow=c(5,3))
+par(mar=c(2,2,2,2))
+
+for (j in 1:5)
+{
+for (i in 1:3)
+{
+  hist(outs$betas1[,i,j],main=paste('beha',as.character(j),' ',acc[i],sep=''))
+  abline(v=betas1[[j]][i],col='red')
+}
+}
+
+#alphas
+par(mfrow=c(5,3))
+par(mar=c(2,2,2,2))
+acc=c('Accx','Accy','Accz')
+for (j in 1:5)
+{
+  for (i in 1:3)
+  {
+    hist(outs$alphas[,i,j],main=paste('beha',as.character(j),' ',acc[i],sep=''))
+    abline(v=alphas[[j]][i],col='red')
   }
 }
