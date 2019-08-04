@@ -47,10 +47,10 @@ outs <- rstan::extract(fit, permuted = TRUE) # return a list of arrays
 source('simulation.R')
 S=rep(states,times=Stimes)
 NAS=which(c(1,diff(S))!=0)
-
-
+u=numeric(dim(Obs)[2])
+u[NAS]=Stimes
 # Fit and outs 
-data.simu<- list(K = 5, y = Obs,k=Ks,T=dim(Obs)[2],z=S,NAS=NAS,u=Stimes,N=Tc)
+data.simu<- list(K = 5, y = Obs,k=Ks,T=dim(Obs)[2],z=S,NAS=NAS,u=u,N=Tc)
 stanc("model_SHMM.stan")
 options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
