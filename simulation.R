@@ -9,7 +9,7 @@ library(tidyverse)
 # Sojourn time parameters
 lambda=c(20,13,10.8,15.8,17.2) 
 M=length(lambda) # Number of possible states
-                                                                    
+
 # Parameters of AR models
 alphas=list()
 alphas[[1]]=c(0.2,0.3,0.4) # alpha parameter for state 1 for the three acc axis
@@ -47,10 +47,10 @@ delta=rep(1,M)/M
 # Trasition probability matrix:
 # tmp_ii=0
 tpm <- matrix(c(0, 0.34, 0.255, 0.105, 0.3,
-                 0.2, 0, 0.35, 0.25, 0.2,
-                 0.11, 0.25,0, 0.29,0.35,
-                 0.1, 0.2, 0.3, 0,0.4,
-                 0.25,0.15,0.20,0.4,0), byrow = T, nrow = 5)
+                0.2, 0, 0.35, 0.25, 0.2,
+                0.11, 0.25,0, 0.29,0.35,
+                0.1, 0.2, 0.3, 0,0.4,
+                0.25,0.15,0.20,0.4,0), byrow = T, nrow = 5)
 
 # Number of total NAS sequence (i.e, number of changes)
 Tc=30
@@ -60,15 +60,15 @@ states=numeric(Tc)
 for (j in 1:Tc) {
   if (j == 1) {
     states[1] <- sample(x = 1:M, size = 1, prob = delta)
-    } else {
-      states[j] <- sample(x = 1:M, size = 1, prob = tpm[states[j -1], ])
-    }
+  } else {
+    states[j] <- sample(x = 1:M, size = 1, prob = tpm[states[j -1], ])
   }
+}
 
 ### 3. Simultation of the sojourn times 
 Stimes=numeric(Tc)
 for (j in 1:Tc) {
-    Stimes[j] <- rpois(1,lambda [states[j]])
+  Stimes[j] <- rpois(1,lambda [states[j]])
 }
 totL=sum(Stimes)
 
@@ -77,18 +77,18 @@ Obs=matrix(NA,nrow=3,ncol=totL)
 count=1 # to index the Obs matrix
 for (i in 1:Tc)# change in state 
 {
- act.state=states[i]
-    for (j in 1:3)# acc axis
-   {   
-     # set the order of the actual model
-     ars=c(alphas[[act.state]][j],betas1[[act.state]][j],
-     betas2[[act.state]][j],betas3[[act.state]][j])
-
-     # Simulate the ar mode with arima.sim function
-     simu=arima.sim(list(ar=na.omit(ars)), n=Stimes[i])
-     Obs[j,(count:(count+length(simu)-1))]=simu
-    }
- count=count+length(simu)
+  act.state=states[i]
+  for (j in 1:3)# acc axis
+  {   
+    # set the order of the actual model
+    ars=c(alphas[[act.state]][j],betas1[[act.state]][j],
+          betas2[[act.state]][j],betas3[[act.state]][j])
+    
+    # Simulate the ar mode with arima.sim function
+    simu=arima.sim(list(ar=na.omit(ars)), n=Stimes[i])
+    Obs[j,(count:(count+length(simu)-1))]=simu
+  }
+  count=count+length(simu)
 }
 
 ### 7. Creation of the Data Frame with the simulated data
@@ -106,3 +106,20 @@ ggplot(Obs.df %>% filter(Axis=='Accx')) + geom_point(aes(x=Times,y=States,col=St
 # Plot the Observations
 ggplot(Obs.df) + geom_line(aes(x=Times,y=Acc,col=Axis),alpha=0.6)+theme_bw()
 
+Ks=matrix(0,ncol=4,nrow=15)
+Ks[,1]=1
+Ks[,2]=1
+c=1
+for (i in 1:3)
+{
+  for(j in 1:5)
+  { 
+    if (k[i,j]>1)
+    {Ks[c,3]=1}
+    
+    if (k[i,j]>2)
+    {Ks[c,4]=1}
+    
+    c=c+1
+  }
+}
