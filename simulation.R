@@ -41,6 +41,9 @@ betas3[[5]]=c(NA,NA,NA) # beta3 for state 5 for the three acc axis
 
 k=cbind(c(1,2,1),c(1,2,3),c(1,1,1),c(2,3,1),c(2,1,1)) # order of each model
 
+## sigmas
+sigma=cbind(c(0.5,0.8,0.7),c(0.5,0.8,0.7),c(0.5,0.8,0.7),c(0.5,0.8,0.7),c(0.5,0.8,0.7))
+
 # Initial distributions
 delta=rep(1,M)/M
 
@@ -74,21 +77,20 @@ totL=sum(Stimes)
 
 ### 4. Simultation of the observations (AR models)
 Obs=matrix(NA,nrow=3,ncol=totL)
-count=1 # to index the Obs matrix
-for (i in 1:Tc)# change in state 
+st=rep(rep(states,times=Stimes),3)
+set.seed(999)
+Obs[,1:3]=cbind(t(rnorm(3,0,sd=sigma[1,st[1]])),t(rnorm(3,0,sd=sigma[2,st[1]])),
+                t(rnorm(3,0,sd=sigma[3,st[1]])))
+for (i in 4:totL)# change in state 
 {
-  act.state=states[i]
   for (j in 1:3)# acc axis
   {   
     # set the order of the actual model
-    ars=c(alphas[[act.state]][j],betas1[[act.state]][j],
-          betas2[[act.state]][j],betas3[[act.state]][j])
-    
-    # Simulate the ar mode with arima.sim function
-    simu=arima.sim(list(ar=na.omit(ars)), n=Stimes[i])
-    Obs[j,(count:(count+length(simu)-1))]=simu
-  }
-  count=count+length(simu)
+    ars=na.omit(c(betas1[[st[i]]][j],
+          betas2[[st[i]]][j],betas3[[st[i]]][j]))
+    orde=length(ars)
+    Obs[j,i]=alphas[[st[i]]][j]+Obs[j,(i-orde):(i-1)]%*%ars+rnorm(1,0,sigma[j,st[i]])
+    }
 }
 
 ### 7. Creation of the Data Frame with the simulated data
@@ -101,7 +103,7 @@ Obs.df=data.frame(Times,Acc,Axis,States)
 
 ### 6. Plot the simulations
 # Plot state sequencies
-ggplot(Obs.df %>% filter(Axis=='Accx')) + geom_point(aes(x=Times,y=States,col=States))
+ggplot(Obs.df %>% filter(Axis=='Accx')) + geom_point(aes(x=Times,y=States,col=States))+theme_bw()
 
 # Plot the Observations
 ggplot(Obs.df) + geom_line(aes(x=Times,y=Acc,col=Axis),alpha=0.6)+theme_bw()
@@ -123,3 +125,8 @@ for (i in 1:3)
     c=c+1
   }
 }
+
+# modifico la matriz de tpm y saco la diagonal 
+
+tpm2=rbind(tpm[1,][-1],tpm[2,][-2], tpm[3,][-3], tpm[4,][-4],tpm[5,][-5])
+
