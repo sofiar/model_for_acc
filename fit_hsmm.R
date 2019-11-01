@@ -4,6 +4,7 @@
 
 library(rstan)
 library(tidyverse)
+library(bayesplot)
 
 #############################
 ## Toy example HMM 2States ##
@@ -50,12 +51,13 @@ NAS=which(c(1,diff(S))!=0)
 u=numeric(dim(Obs)[2])
 u[NAS]=Stimes
 # Fit and outs 
-data.simu<- list(K = 5, y = Obs,T=dim(Obs)[2],z=S,NAS=NAS,u=u,N=Tc)
+data.simu<- list(K = 5, y = Obs,T=dim(Obs)[2],z=S,NAS=NAS,u=u,N=Tc,
+                 coun=c(4,6,8,9))
 stanc("model_SHMM.stan")
 options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
 fit <- stan(file = 'model_SHMM.stan', data = data.simu,chain=2,cores=3,control = list(max_treedepth = 15))
-
+print(fit)
 ########################### Results ################################
 
 outs <- rstan::extract(fit, permuted = TRUE) # return a list of arrays 
@@ -80,30 +82,57 @@ for (i in 1:5)
 
 
 # tmp parameters
-par(mfrow=c(5,5))
+par(mfrow=c(5,4))
 par(mar=c(2,2,2,2))
 
 for (i in 1:5)
 {
-  for (j in 1:5)
-  {hist(outs$ta[,i,j],main=paste('p',as.character(i),as.character(j),sep=''))
-   abline(v=tpm[i,j],col='red')
+  for (j in 1:4)
+  {hist(outs$theta[,i,j],main=paste('p',as.character(i),as.character(j),sep=''))
+   abline(v=tpm2[i,j],col='red')
   }
 }
+
+## sigmas 
+
+par(mfrow=c(5,3))
+par(mar=c(2,2,2,2))
+
+for(i in 1:5)
+{
+    for(j in 1:3)
+  {
+    hist(outs$sigma[,j,i],main=paste('sigma',as.character(i),as.character(j),sep=''))
+    abline(v=sigma[j,i],col='red')
+  }
+}
+
 
 # Autorregressive parameteres
 par(mfrow=c(5,3))
 par(mar=c(2,2,2,2))
 Ac=c('Accx','Accy','Accz')
 # Alphas
+
+x <- seq(-5, 5, length=1000)
+hx <- dst(x,mu=0,sigma=1,nu=3)
+plot(x, hx, type="l", lty=2, xlab="x value",
+     ylab="Density", main="Comparison of t Distributions")
 for (j in 1:5)
 {
   for (i in 1:3)
 {
-      hist(outs$alpha[,i,j],main=paste('alpha',Ac[i],as.character(j),sep=' '))
+
+ hist(outs$alpha[,i,j],main=paste('alpha',Ac[i],as.character(j),sep=' '),add=T,freq=F)
   abline(v=alphas[[j]][i],col='red')
-  }
+  
+
+  
+  
+    }
  }
+
+
 
 #Beta1
 for (j in 1:5)
