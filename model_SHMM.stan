@@ -6,10 +6,56 @@ data {
   int<lower=0> u[T]; // sojuorn times
   int NAS[N]; // indexes of NAS points
   matrix[3,T] y;// obs data
+  vector<lower=0>[(K-1)] coun;  // transit prior (?)
   
-  //int <lower=0,upper=3> k[3*K, 4];//AR() orders
- //int <lower=0,upper=2> kz[K]; //ACCX AR() orders
   }
+
+transformed data {
+
+// Count
+
+vector<lower=0>[K-1] counts_post[K];
+for (k in 1:K)
+    counts_post[k] =coun;
+for (m in NAS[2:N])
+{
+if(z[m-1]==1)
+{
+    counts_post[z[m-1], (z[m]-1)] += 1;
+}
+  
+if(z[m-1]==2)
+{
+    if (z[m]>=3)
+    counts_post[z[m-1], (z[m]-1)] += 1;
+    else
+    {counts_post[z[m-1], (z[m])] += 1;}
+}
+
+if(z[m-1]==3)
+{
+    if (z[m]>=4)
+    counts_post[z[m-1], (z[m]-1)] += 1;
+    else
+    {counts_post[z[m-1], (z[m])] += 1;}
+}
+
+if(z[m-1]==4)
+{
+    if (z[m]==5)
+    counts_post[z[m-1], (z[m]-1)] += 1;
+    else
+    {counts_post[z[m-1], (z[m])] += 1;}
+}
+
+
+if(z[m-1]==5)
+{
+{counts_post[z[m-1], (z[m])] += 1;}
+}
+}
+
+}
 parameters {
   //sojourn times parameters
   real <lower=0> lambda[K];  
@@ -19,21 +65,8 @@ parameters {
   real betas2[6]; //fixed from the sysmtem
   real betas3[2]; //fixed from the sysmtem 
   real<lower=0> sigmas[3,K];
-  // K x K tpm
-  simplex[K] theta[K]; 
-}
-
-
-transformed parameters{
-matrix[K, K] ta; 
-for(j in 1:K){
-for(i in 1:K){
-ta[i,j]= theta[i,j];
-}
-}
-for(i in 1:K){
-ta[i,i]= 0;
-}
+  // K x K-1 tpm
+   simplex[K-1] theta[K]; 
 }
 
 model {
@@ -45,31 +78,34 @@ model {
   real lp_pz;
       
   
-  // priors 
+  //////// PRIORS ////////
+  
+  //autorregresive parameters
   for (i in 1:3)
   {
   alphas[i] ~ student_t(10, 0, 1);  
   betas1[i] ~ student_t(3, 0, 1);
   }
-  
-  //betas2 ~ student_t(3, 0, 1);
-  
-  
-  
   for(i in 1:K)
-  {lambda[i]~normal(15, 5);
+  {lambda[i]~normal(15, 5);//sojoun times
     for(j in 1:3)
       sigmas[j,i] ~ cauchy(0,2);
   }
-// transpose the tpm and take natural log of entries
-for (n_from in 1:K)
-  for (n in 1:K)
-  if(n_from !=n)
-    log_theta_tr[n, n_from] = log(ta[ n,n_from]);
-// Compute CDL
+  //////// TPM ////////
 
+//Analytic posterior
+  for (k in 1:K)
+      theta[k] ~ dirichlet(counts_post[k]);
+
+// Take natural log of entries
+//  for (j in 1:K)
+//  for (n in 1:(K-1))
+  
+  //log_theta_tr[j, n] = log(theta[ j,n]);
+
+// Compute CDL
 //First obs
-lp = log(0.5) + poisson_lpmf(u[1]|lambda[z[1]])+normal_lpdf(y[1,1] | 0, sigmas[1,z[1]])+
+lp = log(0.2) + poisson_lpmf(u[1]|lambda[z[1]])+normal_lpdf(y[1,1] | 0, sigmas[1,z[1]])+
 normal_lpdf(y[2,1] | 0, sigmas[2,z[1]])+normal_lpdf(y[3,1] | 0, sigmas[3,z[1]]);
 
 for (t in 4:T) { // looping over all observations pdfs
@@ -130,9 +166,44 @@ lp = lp+lp_px+lp_py+lp_pz;
 }
 
 for (m in NAS[2:N]) { // looping over NAS
- lp_p1 = log_theta_tr[z[m-1],z[m]]+ poisson_lpmf(u[m]|lambda[z[m]]);
+
+//Distinguish theta indexes
+
+if(z[m-1]==1)
+{
+lp_p1 = log(theta[z[m-1],z[m]-1])+ poisson_lpmf(u[m]|lambda[z[m]]);
+}
+  
+if(z[m-1]==2)
+{
+    if (z[m]>=3)
+    lp_p1 = log(theta[z[m-1],z[m]-1])+ poisson_lpmf(u[m]|lambda[z[m]]);
+    else
+    {lp_p1 = log(theta[z[m-1],z[m]])+ poisson_lpmf(u[m]|lambda[z[m]]);}
+}
+
+if(z[m-1]==3)
+{
+    if (z[m]>=4)
+    lp_p1 = log(theta[z[m-1],z[m]-1])+ poisson_lpmf(u[m]|lambda[z[m]]);
+    else
+    {lp_p1 = log(theta[z[m-1],z[m]])+ poisson_lpmf(u[m]|lambda[z[m]]);}
+}
+
+if(z[m-1]==4)
+{
+    if (z[m]==5)
+    lp_p1 = log(theta[z[m-1],z[m]-1])+ poisson_lpmf(u[m]|lambda[z[m]]);
+    else
+    {lp_p1 = log(theta[z[m-1],z[m]])+ poisson_lpmf(u[m]|lambda[z[m]]);}
+}
+
+
+if(z[m-1]==5)
+{
+{lp_p1 = log(theta[z[m-1],z[m]])+ poisson_lpmf(u[m]|lambda[z[m]]);}
+}
  lp = lp+lp_p1;
-  //count=count+1;
 }
 
 target += lp;
