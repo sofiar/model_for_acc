@@ -86,8 +86,8 @@ for (i in 4:totL)# change in state
   for (j in 1:3)# acc axis
   {   
     # set the order of the actual model
-    ars=na.omit(c(betas1[[st[i]]][j],
-          betas2[[st[i]]][j],betas3[[st[i]]][j]))
+    ars=rev(na.omit(c(betas1[[st[i]]][j],
+          betas2[[st[i]]][j],betas3[[st[i]]][j])))
     orde=length(ars)
     Obs[j,i]=alphas[[st[i]]][j]+Obs[j,(i-orde):(i-1)]%*%ars+rnorm(1,0,sigma[j,st[i]])
     }
