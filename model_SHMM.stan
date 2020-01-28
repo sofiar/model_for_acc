@@ -67,6 +67,11 @@ parameters {
   real<lower=0> sigmas[3,K];
   // K x K-1 tpm
    simplex[K-1] theta[K]; 
+   real<lower=0> omega1;
+   real<lower=0> omega2;
+  real<lower=0> omega3;
+  real<lower=0> omega4;
+    
 }
 
 model {
@@ -83,9 +88,22 @@ model {
   //autorregresive parameters
   for (i in 1:3)
   {
-  alphas[i] ~ student_t(10, 0, 1);  
-  betas1[i] ~ student_t(3, 0, 1);
+  alphas[i] ~ normal(0, omega1);  
+  betas1[i] ~ normal(0,omega2);
   }
+  
+  for (i in 1:6)
+  {
+    betas2[i] ~ normal(0,omega3);
+  }
+  
+  for (i in 1:2)
+  {
+    betas3[i]~ normal(0,omega4);
+  }
+  omega1~uniform(0,5);
+  omega2~uniform(0,5);
+  omega3~uniform(0,5);
   for(i in 1:K)
   {lambda[i]~normal(15, 5);//sojoun times
     for(j in 1:3)

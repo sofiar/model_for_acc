@@ -52,7 +52,7 @@ u=numeric(dim(Obs)[2])
 u[NAS]=Stimes
 # Fit and outs 
 data.simu<- list(K = 5, y = Obs,T=dim(Obs)[2],z=S,NAS=NAS,u=u,N=Tc,
-                 coun=c(4,6,8,9))
+                 coun=c(1,1,1,1))
 stanc("model_SHMM.stan")
 options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
@@ -64,7 +64,7 @@ outs <- rstan::extract(fit, permuted = TRUE) # return a list of arrays
 
 # Save workspace
 save.image("last_fit.RData")
-traceplot(fit,pars=c("alphas", "betas1",'betas2'))
+#traceplot(fit,pars=c("alphas", "betas1",'betas2'))
 fit_summary <- summary(fit,  probs = c(0.025, 0.05, 0.5, 0.95, 0.975))$summary
 #op <- par(mfrow = c(1,2))
 #hist(fit_summary[,1], main = "R-hat")#
@@ -114,21 +114,14 @@ par(mar=c(2,2,2,2))
 Ac=c('Accx','Accy','Accz')
 # Alphas
 
-x <- seq(-5, 5, length=1000)
-hx <- dst(x,mu=0,sigma=1,nu=3)
-plot(x, hx, type="l", lty=2, xlab="x value",
-     ylab="Density", main="Comparison of t Distributions")
+
 for (j in 1:5)
 {
   for (i in 1:3)
 {
 
- hist(outs$alpha[,i,j],main=paste('alpha',Ac[i],as.character(j),sep=' '),add=T,freq=F)
+ hist(outs$alpha[,i,j],main=paste('alpha',Ac[i],as.character(j),sep=' '),freq=F)
   abline(v=alphas[[j]][i],col='red')
-  
-
-  
-  
     }
  }
 
@@ -146,12 +139,41 @@ for (j in 1:5)
 
 
 #Beta2
+
+par(mfrow=c(2,3))
+par(mar=c(2,2,2,2))
+
+c=1
+for (j in 1:5)
+{
+ for (i in 1:3)
+ {
+ if(!is.na(betas2[[j]][i]))
+ {
+   hist(outs$betas2[,c],main=paste('beta2',Ac[i],as.character(j),sep=' '))
+   abline(v=betas2[[j]][i],col='red')
+   c=c+1
+ }
+}
+}
+
+par(mfrow=c(2,1))
+par(mar=c(2,2,2,2))
+
+c=1
 for (j in 1:5)
 {
   for (i in 1:3)
   {
-    hist(outs$betas1[,i,j],main=paste('beta2',Ac[i],as.character(j),sep=' '))
-    abline(v=betas1[[j]][i],col='red')
+    if(!is.na(betas3[[j]][i]))
+    {
+      hist(outs$betas3[,c],main=paste('beta2',Ac[i],as.character(j),sep=' '))
+      abline(v=betas3[[j]][i],col='red')
+      c=c+1
+    }
   }
 }
+
+
+
 
