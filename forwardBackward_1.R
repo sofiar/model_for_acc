@@ -22,8 +22,11 @@ for (t in 2:n)
 {
   for (m in 1:M)
   {
-    log.forwrd[m,t]=log_allprobs[[i]][t,m]+log_sum_expS(log.forwrd[,t-1],t(log_gamma)[,m])# traspuesta de gamma?
-  }
+#    log.forwrd[m,t]=log_allprobs[[i]][t,m]+log_sum_expS(log.forwrd[,t-1],t(log_gamma)[,m])# traspuesta de gamma?
+    log.forwrd[m,t]=log_allprobs[[i]][t,m]+logSumExp(c(log.forwrd[,t-1]+t(log_gamma)[,m]))# traspuesta de gamma?
+    
+    
+      }
 }
 
 #plot(exp(log.forwrd[3,]))
@@ -32,7 +35,7 @@ for (t in 2:n)
 ### 2. Backward probabilities
 for(m in 1:5)
 {
-  log.backwrd[m,n]=log_allprobs[[i]][n,m]
+  log.backwrd[m,n]=0
 }
 
 # Recurrencia
@@ -41,10 +44,10 @@ for (t in (n-1):1)
   for (m in 1:M)
   {
     log.backwrd[m,t]=logSumExp(c(log.backwrd[,t+1]+log_allprobs[[i]][t+1,]+
-                                 log_gamma[,m] )) ## aca tambien es con mas?
+                                   log_gamma[,m] ))
+                                  
   }
 }
-
 
 stateprobs=matrix(NA,nrow=n,ncol=M)
 lscale = log_sum_expS(log.forwrd[,n], rep(0,M))
