@@ -6,7 +6,9 @@ library(mvtnorm)
 #1. Simulacion 
 # 5 comportamientos. supongo todos las variables AR(1)
 
-M=5 # Number of possible states
+M=2 # Number of possible states
+n=500
+nrep=50
 
 # Parameters of AR models
 alphas=list()
@@ -28,21 +30,29 @@ sigma=cbind(c(0.5,0.8,0.7),c(0.5,0.8,0.7),c(0.5,0.8,0.7),c(0.5,0.8,0.7),c(0.5,0.
 # Initial distributions
 delta=rep(1,M)/M
 
-tpm <- matrix(c(0.9, 0.05, 0.03, 0.01,0.01,
-                0.1, 0.4,0.4, 0.07, 0.03,
-                0.01, 0.15, 0.7,0.09,0.05,
-                0.01,0.03 ,0.01, 0.61, 0.34,
-                0.01,0.03 ,0.31, 0.11, 0.54), byrow = T, nrow = 5)
+# para dos estados
+
+tpm <- matrix(c(0.9, 0.1,
+                0.05,0.95), byrow = T, nrow = 2)
+
+
+## para 5 estados
+# M=5
+# tpm <- matrix(c(0.9, 0.05, 0.03, 0.01,0.01,
+#                 0.1, 0.4,0.4, 0.07, 0.03,
+#                 0.01, 0.15, 0.7,0.09,0.05,
+#                 0.01,0.03 ,0.01, 0.61, 0.34,
+#                 0.01,0.03 ,0.31, 0.11, 0.54), byrow = T, nrow = 5)
 
 ## secuencia de Estados
 
-states <- matrix(NA, nrow = 500, ncol = 50)
-for (i in 1:50) {
-  for (j in 1:500) {
+states <- matrix(NA, nrow = n, ncol = nrep)
+for (i in 1:nrep) {
+  for (j in 1:n) {
     if (j == 1) {
-      states[1, i] <- sample(x = 1:5, size = 1, prob = delta)
+      states[1, i] <- sample(x = 1:M, size = 1, prob = delta)
     } else {
-      states[j, i] <- sample(x = 1:5, size = 1, prob = tpm[states[j - 1, i], ])
+      states[j, i] <- sample(x = 1:M, size = 1, prob = tpm[states[j - 1, i], ])
     }
   }
 }
@@ -50,10 +60,10 @@ rm(i,j)
 
 ## simu observaciones
 obs <- list()
-for (k in 1:50) obs[[k]] <- matrix(NA, nrow = 500, ncol = 3)
+for (k in 1:nrep) obs[[k]] <- matrix(NA, nrow = n, ncol = 3)
 rm(k)
 # set first obs
-for (k in 1:50){
+for (k in 1:nrep){
 obs[[k]][1,]=rmvnorm(1, mean = rep(0, 3), sigma = diag(sigma[,states[1,k]]))
 
 # c(rnorm(1,0,sd=sigma[1,states[1,k]]),
@@ -61,8 +71,8 @@ obs[[k]][1,]=rmvnorm(1, mean = rep(0, 3), sigma = diag(sigma[,states[1,k]]))
 #                 rnorm(1,0,sd=sigma[3,states[1,k]]))
 }
 rm(k)
-for (i in 1:50) {
-  for (j in 2:500) {
+for (i in 1:nrep) {
+  for (j in 2:n) {
     
     mu=alphas[[states[j,i]]]+obs[[i]][(j-1),]*betas1[[states[j,i]]]
     sig=sigma[,states[j,i]]
@@ -105,9 +115,7 @@ ggplot(data%>%filter(timeseries=='T1'))+geom_line(aes(x=seq(1,500),X1),col='red'
 # log_delta  = log initial distribution 
 #              :: vector of length m
 
-n=length(obs[[1]][,1])
-nrep=50
-M=5
+
 
 log_allprobs=list()
 
