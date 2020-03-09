@@ -8,11 +8,11 @@ error.pred=numeric(nrep)
 
 for (i in 1:nrep)
 {
-log.forwrd=matrix(NA,ncol=500,nrow = 5)
-log.backwrd=matrix(NA,ncol=500,nrow = 5)
+log.forwrd=matrix(NA,ncol=n,nrow = M)
+log.backwrd=matrix(NA,ncol=n,nrow = M)
 
 ### 1.  Forward probabilities
-for(m in 1:5)
+for(m in 1:M)
 {
 log.forwrd[m,1]=log_allprobs[[i]][1,m]+log_delta[m]
 }
@@ -23,17 +23,15 @@ for (t in 2:n)
   for (m in 1:M)
   {
 #    log.forwrd[m,t]=log_allprobs[[i]][t,m]+log_sum_expS(log.forwrd[,t-1],t(log_gamma)[,m])# traspuesta de gamma?
-    log.forwrd[m,t]=log_allprobs[[i]][t,m]+logSumExp(c(log.forwrd[,t-1]+t(log_gamma)[,m]))# traspuesta de gamma?
+    log.forwrd[m,t]=log_allprobs[[i]][t,m]+logSumExp(c(log.forwrd[,t-1]+log_gamma[,m]))
     
     
       }
 }
 
-#plot(exp(log.forwrd[3,]))
-
 
 ### 2. Backward probabilities
-for(m in 1:5)
+for(m in 1:M)
 {
   log.backwrd[m,n]=0
 }
@@ -44,7 +42,7 @@ for (t in (n-1):1)
   for (m in 1:M)
   {
     log.backwrd[m,t]=logSumExp(c(log.backwrd[,t+1]+log_allprobs[[i]][t+1,]+
-                                   log_gamma[,m] ))
+                                   log_gamma[m,] ))
                                   
   }
 }
