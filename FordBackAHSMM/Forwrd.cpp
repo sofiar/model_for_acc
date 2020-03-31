@@ -1,5 +1,8 @@
+#include <numeric>
 #include <Rcpp.h>
 using namespace Rcpp;
+using namespace std;
+
 
 // [[Rcpp::export]]
 DataFrame Forwrd(NumericVector FF, NumericVector NN, NumericMatrix NNorm, NumericVector SStatein,

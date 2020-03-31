@@ -42,7 +42,7 @@ FBAcpp <- function(pi, pdf, d, p){
 
   ### Recursion Forward
   
-  a=Forwrd(FF,N,Norm,SStateIn,J,tau,M,delta,PDF,Dd,DD,tpm)
+  a=Forwrd(FF,N,Norm,StateIn,J,tau,M,delta,PDF,Dd,DD,tpm)
   Ford=a$F
   dim(Ford)= c(tau,J)
   F=t(Ford)
